@@ -1,0 +1,14 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+day0/
+.venv/
+*.db
+*简历*
+*面试*
+*话术*
+仓库核查报告*
+待回填*
+第二个项目*
+罗烨-*
+.idea/

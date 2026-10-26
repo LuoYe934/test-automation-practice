@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 0 摸底卷 · 测试/运维 · 限时 40 分钟</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --line:#262b36; --text:#e6e9ef;
+    --muted:#9aa3b2; --accent:#4f8cff; --warn:#ff6b6b; --ok:#3ecf8e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px 80px;}
+  header{position:sticky;top:0;z-index:10;background:rgba(15,17,21,.95);
+         backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+         padding:14px 0;margin-bottom:24px;}
+  .hrow{max-width:860px;margin:0 auto;padding:0 20px;
+        display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  h1{font-size:17px;margin:0;font-weight:600;}
+  .timer{font-family:ui-monospace,Consolas,monospace;font-size:22px;font-weight:700;
+         letter-spacing:1px;color:var(--accent);}
+  .timer.danger{color:var(--warn);}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--text);
+       border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;}
+  .btn:hover{border-color:var(--accent);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .notice{background:#2a1f1f;border:1px solid #4a2c2c;border-radius:10px;
+          padding:12px 16px;color:#ffb4b4;font-size:13.5px;margin-bottom:24px;}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+     padding:16px 18px;margin-bottom:14px;}
+  .qhead{display:flex;gap:10px;align-items:baseline;margin-bottom:8px;}
+  .no{font-family:ui-monospace,monospace;color:var(--accent);font-weight:700;}
+  .tag{font-size:11.5px;color:var(--muted);border:1px solid var(--line);
+       border-radius:20px;padding:1px 9px;}
+  .qtext{font-size:14.5px;color:var(--text);}
+  .qtext code{background:#222732;padding:1px 6px;border-radius:4px;
+              font-family:ui-monospace,Consolas,monospace;font-size:13px;}
+  textarea{width:100%;margin-top:12px;background:#11141a;color:var(--text);
+           border:1px solid var(--line);border-radius:8px;padding:11px 13px;
+           font:14px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+           resize:vertical;outline:none;}
+  textarea:focus{border-color:var(--accent);}
+  .saved{font-size:12px;color:var(--muted);margin-left:auto;}
+  .saved.on{color:var(--ok);}
+  footer{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.95);
+         backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 0;}
+  .frow{max-width:860px;margin:0 auto;padding:0 20px;display:flex;
+        align-items:center;gap:12px;flex-wrap:wrap;}
+  .hint{font-size:12.5px;color:var(--muted);}
+  .done{color:var(--muted);font-size:12.5px;font-family:ui-monospace,monospace;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <h1>Day 0 摸底卷</h1>
+    <div class="timer" id="timer">40:00</div>
+    <button class="btn primary" id="startBtn" onclick="start()">开始计时</button>
+    <span class="saved" id="saved"></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="notice">
+    <b>规则：凭记忆答，不许搜索、不许查文档、不许翻笔记。</b><br>
+    答不出来就写"不会"或写出你能想到的部分 —— 这恰恰是我需要的诊断数据。搜来的答案只会让我误判你的水平，浪费的是你自己的 15 天。<br>
+    答案会自动保存在本机浏览器，随时可以关掉再打开。做完点底部<b>「导出答案.md」</b>，把文件内容发给我。
+  </div>
+  <div id="list"></div>
+</div>
+
+<footer>
+  <div class="frow">
+    <button class="btn primary" onclick="exportMd()">导出答案.md</button>
+    <button class="btn" onclick="clearAll()">清空重答</button>
+    <span class="done" id="count">已作答 0 / 14</span>
+    <span class="hint">导出后把内容粘贴发给我 → 我逐题批，然后校准 Day1–Day5 任务量</span>
+  </div>
+</footer>
+
+<script>
+const QS = [
+  ["Linux","一台服务器 CPU 使用率突然飙到 90%，请写出你的完整排查顺序和用到的命令。"],
+  ["Linux","写出命令：找出 /var/log 下 7 天内修改过且大于 100MB 的文件并删除。"],
+  ["Linux","解释 load average 三个数值的含义；什么情况下 load 很高但 CPU 使用率很低？"],
+  ["Linux","服务启动报“端口已被占用”，你怎么定位并解决？写具体命令。"],
+  ["Linux","写一条 crontab：每天凌晨 2:00 执行 /opt/backup.sh 并把输出追加到日志。"],
+  ["Docker","docker run 后容器立刻退出，写出你的排查步骤（至少 3 步）。"],
+  ["Docker","Dockerfile 中 CMD 与 ENTRYPOINT 的区别？镜像体积过大你会如何优化（至少 2 种）？"],
+  ["网络","从浏览器输入 URL 到页面渲染完成，中间发生了什么？（要求说到 DNS、TCP 三次握手、TLS、HTTP、渲染）"],
+  ["网络","502 和 504 的区别？分别在架构的哪一层出问题？"],
+  ["测试","给你一个“手机号 + 验证码登录”接口，写出你能想到的测试用例，分类列出，不少于 15 条。"],
+  ["SQL","线上一条 SQL 突然变慢，你的排查步骤是什么？"],
+  ["SQL","写 SQL：查出订单表中每个用户的最新一笔订单（字段自拟）。"],
+  ["项目讲述","【必做】用 300–500 字讲清楚苍穹外卖/黑马点评：你负责什么、技术选型理由、最难的一个问题怎么解决的、有没有数据（QPS/用户量/优化前后对比）。"],
+  ["信息表","【必做】Day 0 信息表：① 简历现状与投递历史 ② 城市/每周到岗天数/可实习月数/最早到岗日期 ③ 已约面试、内推人、目标公司名单 ④ 院校层次、四六级、GPA/排名 ⑤ 服务器与环境情况（阿里云是否可用、本地虚拟机、GitHub 可访问性）"]
+];
+
+const KEY = "day0_quiz_answers_v1";
+let answers = JSON.parse(localStorage.getItem(KEY) || "{}");
+let left = parseInt(localStorage.getItem(KEY+"_left") || "2400", 10);
+let running = localStorage.getItem(KEY+"_run") === "1";
+let tick = null;
+
+function render(){
+  const box = document.getElementById("list");
+  box.innerHTML = QS.map((q,i)=>`
+    <div class="q">
+      <div class="qhead">
+        <span class="no">${String(i+1).padStart(2,"0")}</span>
+        <span class="tag">${q[0]}</span>
+      </div>
+      <div class="qtext">${q[1]}</div>
+      <textarea rows="6" data-i="${i}" placeholder="在此作答…">${(answers[i]||"").replace(/</g,"&lt;")}</textarea>
+    </div>`).join("");
+  box.querySelectorAll("textarea").forEach(ta=>{
+    ta.addEventListener("input", e=>{
+      answers[e.target.dataset.i] = e.target.value;
+      localStorage.setItem(KEY, JSON.stringify(answers));
+      flashSaved(); updateCount();
+    });
+  });
+  updateCount();
+}
+function updateCount(){
+  const n = Object.values(answers).filter(v=>v && v.trim()).length;
+  document.getElementById("count").textContent = `已作答 ${n} / ${QS.length}`;
+}
+let st;
+function flashSaved(){
+  const el = document.getElementById("saved");
+  el.textContent = "已保存"; el.classList.add("on");
+  clearTimeout(st); st = setTimeout(()=>{el.textContent="";el.classList.remove("on");},1200);
+}
+function fmt(s){
+  const m = String(Math.floor(s/60)).padStart(2,"0");
+  const sec = String(s%60).padStart(2,"0");
+  return m+":"+sec;
+}
+function paint(){
+  const t = document.getElementById("timer");
+  t.textContent = fmt(Math.max(left,0));
+  t.classList.toggle("danger", left <= 300);
+  if(left <= 0 && tick){ clearInterval(tick); tick=null;
+    t.textContent = "时间到";
+    alert("40 分钟到。停止作答，立即导出答案发给我。");
+  }
+}
+function save(){ localStorage.setItem(KEY+"_left", left); }
+function start(){
+  if(running) return;
+  running = true; localStorage.setItem(KEY+"_run","1");
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("startBtn").textContent = "计时中";
+  tick = setInterval(()=>{ left--; save(); paint(); }, 1000);
+}
+function exportMd(){
+  let md = "# Day 0 摸底卷答案\n\n";
+  md += "> 用时：" + (2400 - Math.max(left,0)) + " 秒（剩余 " + fmt(Math.max(left,0)) + "）\n\n";
+  QS.forEach((q,i)=>{
+    md += `## ${i+1}. [${q[0]}] ${q[1]}\n\n`;
+    md += (answers[i] && answers[i].trim()) ? answers[i].trim() + "\n\n" : "（未作答 / 不会）\n\n";
+  });
+  const blob = new Blob([md], {type:"text/markdown;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "day0-答案.md";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function clearAll(){
+  if(!confirm("确定清空所有答案？此操作不可恢复。")) return;
+  answers = {}; left = 2400; running = false;
+  localStorage.removeItem(KEY); localStorage.removeItem(KEY+"_left"); localStorage.removeItem(KEY+"_run");
+  location.reload();
+}
+render(); paint();
+if(running){
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("startBtn").textContent = "计时中";
+  tick = setInterval(()=>{ left--; save(); paint(); }, 1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>意见反馈 · iframe 练习</title>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; padding: 16px; background: #fff; }
+  input, textarea, button { font-size: 14px; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; }
+  button { background: #16a34a; color: #fff; border: none; cursor: pointer; }
+  #fb-result { font-size: 13px; color: #16a34a; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h3 style="margin-top:0">意见反馈（iframe 内部表单）</h3>
+  <label>邮箱</label><br>
+  <input id="fb-email" type="text" placeholder="you@example.com"><br><br>
+  <label>反馈内容</label><br>
+  <textarea id="fb-content" rows="3" cols="40" placeholder="请输入..."></textarea><br><br>
+  <button id="fb-submit" type="button">提交反馈</button>
+  <div id="fb-result"></div>
+
+<script>
+document.getElementById("fb-submit").addEventListener("click", () => {
+  const email = document.getElementById("fb-email").value.trim();
+  const content = document.getElementById("fb-content").value.trim();
+  const el = document.getElementById("fb-result");
+  if (!email || !content) { el.style.color = "#dc2626"; el.textContent = "邮箱和内容都不能为空"; return; }
+  el.style.color = "#16a34a";
+  el.textContent = "提交成功：" + email;
+});
+</script>
+</body>
+</html>
